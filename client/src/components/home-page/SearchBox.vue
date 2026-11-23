@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { siteConfig } from '@/config'
 import { ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { warmSearch } from "@/search/shared";
@@ -38,7 +39,7 @@ function submit() {
       v-model="query"
       :maxlength="MAX_QUERY_LEN"
       name="q"
-      placeholder="搜索知识点或章节（如 CPU 流水线 / GBN / 中断隐指令）"
+      :placeholder="siteConfig.search.placeholder"
       autocomplete="off"
       class="flex-1 border-0 outline-0 bg-transparent text-xl text-[#0b1f45] placeholder:text-[#9aa9c3]"
       @focus="warmSearch"

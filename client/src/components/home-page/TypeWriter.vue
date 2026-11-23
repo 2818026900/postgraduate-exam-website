@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { siteConfig } from '@/config'
 import { onBeforeUnmount, onMounted, ref } from "vue";
 
 /* 打字机副标题：循环展示多句话
@@ -7,12 +8,8 @@ import { onBeforeUnmount, onMounted, ref } from "vue";
  *  - 完整停留 2.5s
  *  - 倒退删除（每字 35ms）
  *  - 句间停 400ms 再打下一句 */
-const ROTATING_LINES = [
-  "用更少的内容，建立更清晰的知识体系",
-  "开源 · 共建 · 共享，新时代的 AI 原生电子教材",
-  "Less is more ：只收录 408 应试知识最小集",
-  "用图像和交互式动画，帮助你快速掌握复杂的知识",
-];
+/* 轮播文案来自 @/config 中的 siteConfig.hero.subtitles，改配置即可换副标题 */
+const ROTATING_LINES = siteConfig.hero.subtitles;
 
 const typedText = ref("");
 type TypePhase = "typing" | "holding" | "deleting" | "wait";

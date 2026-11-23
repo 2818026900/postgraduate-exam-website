@@ -1,17 +1,23 @@
+<script setup lang="ts">
+import { siteConfig } from '@/config'
+</script>
+
 <template>
   <div class="flex justify-center gap-[18px] mt-[34px] max-md:flex-col max-md:items-center">
     <router-link
-      to="/knowledge"
+      v-if="siteConfig.features.knowledge"
+      :to="siteConfig.cta.knowledge.to"
       class="cta-btn cta-btn-primary h-[62px] min-w-[235px] px-[34px] rounded-[999px] border border-[#3260df] inline-flex items-center justify-center gap-7 no-underline text-lg font-bold cursor-pointer bg-[#1f49ba] text-white shadow-[0_14px_28px_rgba(31,73,186,0.18)] max-md:w-full max-md:max-w-[420px]"
     >
-      <span>浏览知识简纲</span>
+      <span>{{ siteConfig.cta.knowledge.label }}</span>
       <span class="cta-arrow">→</span>
     </router-link>
     <router-link
-      to="/exams"
+      v-if="siteConfig.features.exams"
+      :to="siteConfig.cta.exams.to"
       class="cta-btn cta-btn-ghost h-[62px] min-w-[235px] px-[34px] rounded-[999px] border border-[#3260df] inline-flex items-center justify-center gap-7 no-underline text-lg font-bold cursor-pointer bg-white text-[#1845ad] max-md:w-full max-md:max-w-[420px]"
     >
-      <span>查看历年真题</span>
+      <span>{{ siteConfig.cta.exams.label }}</span>
       <span class="cta-arrow">→</span>
     </router-link>
   </div>

@@ -8,6 +8,7 @@ import SearchBox from "@/components/home-page/SearchBox.vue";
 import CtaButtons from "@/components/home-page/CtaButtons.vue";
 import ContributorsSection from "@/components/home-page/ContributorsSection.vue";
 import { warmSearch } from "@/search/shared";
+import { siteConfig } from "@/config";
 
 onMounted(() => {
   // 首屏渲染完成后，浏览器空闲时统一预热搜索索引、并预取知识/真题页 chunk。
@@ -36,13 +37,13 @@ onMounted(() => {
 
     <section class="relative z-[1] w-full max-w-[980px] mx-auto text-center">
       <div class="text-sm tracking-[0.28em] text-[#5c6f94] font-bold">
-        极简 · 精炼 · 可视化
+        {{ siteConfig.identity.tagline }}
       </div>
 
       <LogoBrand />
 
       <h1 class="mt-[42px] mb-[18px] text-[clamp(63px,7vw,102px)] leading-[1.05] tracking-[-0.045em] font-[850]">
-        把<span class="text-[#1B3FA1] font-mono mx-6">408</span>学薄一点
+        {{ siteConfig.hero.before }}<span class="text-[#1B3FA1] font-mono mx-6">{{ siteConfig.hero.accent }}</span>{{ siteConfig.hero.after }}
       </h1>
 
       <TypeWriter />
