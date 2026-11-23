@@ -5,12 +5,13 @@ import VueDevTools from 'vite-plugin-vue-devtools'
 import { fileURLToPath, URL } from 'node:url'
 import { copyFileSync, mkdirSync, writeFileSync, existsSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
+import { siteConfig } from './src/config/site.config'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 /**
  * GitHub Pages 部署约束（项目仓库二级目录）：
- *   - base: '/postgraduate-exam-website/' — 让产物里所有静态资源引用带上二级路径前缀
+ *   - base 来自 src/config/site.config.ts 的 deploy.basePath，可用 VITE_BASE_PATH 覆盖
  *   - sourcemap: 默认关闭以压缩产物体积，需调试时传 VITE_SOURCEMAP=true 开启
  *   - vueDevTools() 只在 dev 模式生效（apply: 'serve' 默认），不参与 build，不影响 sourcemap
  *   - build 后自动写入 .nojekyll / 404.html 以及 Pages 合规的 SPA 404 重定向文件
@@ -18,14 +19,27 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
  */
 export default defineConfig({
   // 约定：
-  //   - 本地 `npm run dev`：未传 VITE_BASE_PATH → base=/，直接打开 http://localhost:5173/ 即可
-  //   - GitHub Pages 部署：deploy.yml 显式传 VITE_BASE_PATH=/postgraduate-exam-website/
+  //   - 本地 `npm run dev`：未传 VITE_BASE_PATH → base 取配置（默认 /）
+  //   - GitHub Pages 部署：deploy.yml 按仓库名传 VITE_BASE_PATH=/<repo>/
   //   - 自定义域名部署：可自行传 VITE_BASE_PATH=/
-  base: process.env.VITE_BASE_PATH ?? '/',
+  base: process.env.VITE_BASE_PATH ?? siteConfig.deploy.basePath,
   plugins: [
     vue(),
     VueDevTools(),
     tailwindcss(),
+    {
+      // 把站点配置注入 index.html：改配置就能换标题/描述/语言，无需改 HTML
+      name: 'site-config-html',
+      transformIndexHtml(html) {
+        const values: Record<string, string> = {
+          SITE_LANG: siteConfig.identity.lang,
+          SITE_TITLE: siteConfig.identity.title,
+          SITE_DESCRIPTION: siteConfig.identity.description,
+          SITE_KEYWORDS: siteConfig.identity.keywords.join(','),
+        }
+        return html.replace(/{{\s*(\w+)\s*}}/g, (raw, key: string) => values[key] ?? raw)
+      },
+    },
     {
       name: 'github-pages-deploy-files',
       apply: 'build',

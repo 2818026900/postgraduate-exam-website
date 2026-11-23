@@ -1,8 +1,9 @@
-import { knowledgeBooks } from './knowledge-tree'
+import { knowledgeBooks } from './books'
+import { defaultBookId } from '@/config'
 import * as repo from '@/services/examRepository'
 import type { ExamFilterQuery } from '@/services/examRepository'
 
-function getBook(bookId = 'computer-network') {
+function getBook(bookId = defaultBookId) {
   const book = knowledgeBooks.find((candidate) => candidate.id === bookId)
   if (!book) throw new Error(`未找到教材：${bookId}`)
   return book
@@ -46,4 +47,4 @@ export const content = {
   updateExam: async (id: string, exam: unknown) => ({ ...(await repo.getQuestionById(id)), ...(exam as object) }),
 }
 
-export { allKnowledgePoints, knowledgeBooks } from './knowledge-tree'
+export { allKnowledgePoints, knowledgeBooks } from './books'
