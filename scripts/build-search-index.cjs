@@ -127,9 +127,23 @@ const BOOK_MODULE_PATHS = [
 ];
 const articleMap = {}; // pointId -> KnowledgeArticleData
 const bookOfPoint = {}; // pointId -> 拥有该文章正文的 bookId
+// 新版正文（content/knowledge 编译产物，优先）
+const GEN_DIR = path.join(CLIENT_ROOT, "src/content/knowledge-articles/generated");
+const BOOK_IDS = ["computer-network", "data-structures", "computer-organization", "operating-systems"];
+for (const bookId of BOOK_IDS) {
+  const jsonPath = path.join(GEN_DIR, bookId + ".json");
+  if (!existsSync(jsonPath)) continue;
+  const data = JSON.parse(readFileSync(jsonPath, "utf8"));
+  for (const [pointId, article] of Object.entries(data.articles || {})) {
+    articleMap[pointId] = article;
+    bookOfPoint[pointId] = bookId;
+  }
+}
 for (const rel of BOOK_MODULE_PATHS) {
+  if (!existsSync(path.resolve(CLIENT_ROOT, rel))) continue;
   const bookMod = jitiInstance(rel);
   for (const [pointId, article] of Object.entries(bookMod.articlesByPoint || {})) {
+    if (articleMap[pointId]) continue;
     articleMap[pointId] = article;
     bookOfPoint[pointId] = bookMod.bookId || "";
   }

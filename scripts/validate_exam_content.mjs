@@ -138,9 +138,18 @@ function collectFiles(directory, predicate) {
 
 function collectKnowledgeBlockIds() {
   const ids = new Set()
+  // 旧版 TS 正文（迁移期兜底）
   for (const filePath of collectFiles(articlesRoot, (target) => target.endsWith('.ts'))) {
     const source = fs.readFileSync(filePath, 'utf8')
     for (const match of source.matchAll(/\bid:\s*['"](kb-[a-z0-9]+(?:-[a-z0-9]+)*)['"]/g)) {
+      ids.add(match[1])
+    }
+  }
+  // 新版 Markdown 编译产物（content/knowledge → generated/*.json）
+  const generatedRoot = path.join(articlesRoot, 'generated')
+  for (const filePath of collectFiles(generatedRoot, (target) => target.endsWith('.json'))) {
+    const source = fs.readFileSync(filePath, 'utf8')
+    for (const match of source.matchAll(/(?<="id":")(kb-[a-z0-9]+(?:-[a-z0-9]+)*)/g)) {
       ids.add(match[1])
     }
   }
