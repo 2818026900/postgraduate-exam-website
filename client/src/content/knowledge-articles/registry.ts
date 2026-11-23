@@ -1,4 +1,5 @@
 import type { KnowledgeArticleData } from './types'
+import { hydrateArticle, type RawArticle } from './articleAssets'
 import {
   blockIdsOfPoint,
   bookOfPoint,
@@ -6,35 +7,52 @@ import {
 } from './block-index.generated'
 
 /**
- * 知识正文注册表 —— 按教材（book）拆分后，这里不再静态打包任何文章正文。
- * 运行时通过动态 import() 按需加载「当前教材」对应的正文 chunk，
- * 轻量同步元数据（block 反查、筛选器 blockIds）来自自动生成的 block-index。
+ * 知识正文注册表。
+ *
+ * 正文有两个来源，按「教材」动态加载：
+ * 1. `generated/<bookId>.json`：由 content/knowledge/**\/*.md 编译而来（新，优先）；
+ * 2. `books/<bookId>.ts`：迁移前的 TS 正文模块（旧，兜底）。
+ *
+ * 两者按 pointId 合并，JSON 覆盖同名旧数据，因此可以按教材、按章节渐进迁移，
+ * 未迁移的内容仍然照常渲染。轻量同步元数据（block 反查）来自自动生成的
+ * block-index。
  */
 
-/** 教材 id → 该教材正文模块的动态加载器（每个模块是独立 chunk）。 */
-const BOOK_LOADERS: Record<string, () => Promise<{ articlesByPoint: Record<string, KnowledgeArticleData> }>> = {
-  'computer-network': () => import('./books/computer-network'),
-  'data-structures': () => import('./books/data-structures'),
-  'computer-organization': () => import('./books/computer-organization'),
-  'operating-systems': () => import('./books/operating-systems'),
-}
+/** 旧版 TS 正文模块（按教材拆分，懒加载）。 */
+const legacyBookModules = import.meta.glob('./books/*.ts')
+/** 新版 Markdown 编译产物（按教材拆分，懒加载）。 */
+const generatedBookModules = import.meta.glob('./generated/*.json')
 
-/** 按教材缓存已加载的正文，避免同一教材重复下载。 */
 const bookRegistryCache = new Map<string, Promise<Record<string, KnowledgeArticleData>>>()
 
-/** 加载某教材的全部知识正文（pointId → 文章），结果按教材缓存。 */
+async function loadLegacyBook(bookId: string): Promise<Record<string, KnowledgeArticleData>> {
+  const loader = legacyBookModules[`./books/${bookId}.ts`]
+  if (!loader) return {}
+  const module = (await loader()) as { articlesByPoint?: Record<string, KnowledgeArticleData> }
+  return module.articlesByPoint ?? {}
+}
+
+async function loadGeneratedBook(bookId: string): Promise<Record<string, KnowledgeArticleData>> {
+  const loader = generatedBookModules[`./generated/${bookId}.json`]
+  if (!loader) return {}
+  const module = (await loader()) as { default?: { articles?: Record<string, RawArticle> } }
+  const rawArticles = module.default?.articles ?? {}
+  const entries = await Promise.all(
+    Object.entries(rawArticles).map(async ([pointId, raw]) => [pointId, await hydrateArticle(raw)] as const),
+  )
+  return Object.fromEntries(entries)
+}
+
+/** 加载某教材的全部知识正文（Markdown 编译产物优先，旧 TS 兜底），结果按教材缓存。 */
 export function loadBookContent(bookId: string): Promise<Record<string, KnowledgeArticleData>> {
   let pending = bookRegistryCache.get(bookId)
   if (pending) return pending
-  const loader = BOOK_LOADERS[bookId]
-  pending = loader
-    ? loader()
-        .then((mod) => mod.articlesByPoint)
-        .catch((error) => {
-          bookRegistryCache.delete(bookId)
-          throw error
-        })
-    : Promise.resolve({})
+  pending = Promise.all([loadLegacyBook(bookId), loadGeneratedBook(bookId)])
+    .then(([legacy, generated]) => ({ ...legacy, ...generated }))
+    .catch((error) => {
+      bookRegistryCache.delete(bookId)
+      throw error
+    })
   bookRegistryCache.set(bookId, pending)
   return pending
 }
