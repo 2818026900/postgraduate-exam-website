@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { repositoryUrl, repositoryLabel } from '@/config'
 import { ICON_GITHUB, ICON_EXTERNAL_LINK } from "../icons";
 
-/** GitHub 仓库地址 */
-const GITHUB_REPO_URL =
-  "https://github.com/liangbohan/postgraduate-exam-website";
+/** 仓库地址与文案来自 @/config，换仓库只改配置 */
+const GITHUB_REPO_URL = repositoryUrl;
 </script>
 
 <template>
@@ -17,7 +17,7 @@ const GITHUB_REPO_URL =
       v-html="ICON_GITHUB"
       class="inline-flex items-center justify-center"
     />
-    <span>Github 开源仓库</span>
+    <span>{{ repositoryLabel }}</span>
     <span
       v-html="ICON_EXTERNAL_LINK"
       class="inline-flex items-center justify-center opacity-80"

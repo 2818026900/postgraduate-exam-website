@@ -1,3 +1,7 @@
+<script setup lang="ts">
+import { siteConfig } from '@/config'
+</script>
+
 <template>
   <RouterLink
     to="/"
@@ -10,6 +14,6 @@
       <circle cx="26" cy="5" r="4" fill="#38bdf8" />
       <circle cx="26" cy="23" r="4" fill="#06b6d4" />
     </svg>
-    <span class="transition-colors group-hover:text-[#071225]">408 简纲</span>
+    <span class="transition-colors group-hover:text-[#071225]">{{ siteConfig.identity.name }}</span>
   </RouterLink>
 </template>

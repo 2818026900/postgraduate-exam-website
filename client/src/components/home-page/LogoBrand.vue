@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { siteConfig } from '@/config'
 import beta from "./beta.vue";
 </script>
 
@@ -29,7 +30,7 @@ import beta from "./beta.vue";
     <div
       class="brand-text text-[34px] font-extrabold tracking-[-1px] font-mono"
     >
-      408 简纲
+      {{ siteConfig.identity.name }}
     </div>
     <beta />
   </div>
@@ -64,7 +65,7 @@ import beta from "./beta.vue";
   }
 }
 
-/* "408 简纲" 渐变流动 */
+/* 品牌名渐变流动 */
 .brand-text {
   background: linear-gradient(
     90deg,
