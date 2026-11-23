@@ -32,14 +32,12 @@ jobs:
 
       - run: npm ci
 
-      # 一次性补丁：让搜索索引与真题校验读 Markdown 编译产物。
-      # 应用成功后自删，后续手动重跑会自动跳过。
+      # 一次性改造：让搜索索引与真题校验读 Markdown 编译产物（脚本幂等）。
       - name: Apply content pipeline hooks
-        run: |
-          if [ -f scripts/content/pipeline-hooks.patch ]; then
-            git apply scripts/content/pipeline-hooks.patch
-            rm scripts/content/pipeline-hooks.patch
-          fi
+        run: python3 scripts/content/apply_hooks.py
+
+      - name: Clean up migration leftovers
+        run: rm -f scripts/content/pipeline-hooks.patch noop-placeholder.txt
 
       - name: Export TS articles to Markdown
         run: |
@@ -48,6 +46,9 @@ jobs:
           else
             echo "Content already migrated, skip"
           fi
+
+      - name: Rebuild exam index
+        run: npm run rebuild:exams
 
       - name: Validate migrated content
         run: npm run validate
