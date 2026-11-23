@@ -1,50 +1,12 @@
 <script setup lang="ts">
 import { ICON_BILIBILI, ICON_DOUYIN, ICON_XHS, ICON_GITHUB } from "../icons";
+import { siteConfig, contributorsUrl, type ContributorConfig } from "@/config";
 
-type ContributorPlatform = "bilibili" | "douyin" | "xhs" | "github";
+/* 共建者名单来自 @/config 的 siteConfig.contributors，改配置即可增删 */
+const ALL_CONTRIBUTORS: ContributorConfig[] = siteConfig.contributors.list;
 
-type Contributor = {
-  name: string;
-  platform: ContributorPlatform;
-  url: string;
-};
-
-const ALL_CONTRIBUTORS: Contributor[] = [
-  {
-    name: "11408考研良子",
-    platform: "bilibili",
-    url: "https://space.bilibili.com/385409016",
-  },
-  {
-    name: "恐惧之鲸",
-    platform: "github",
-    url: "https://github.com/TerrifyingWhale",
-  },
-  {
-    name: "Spr_Aachen",
-    platform: "github",
-    url: "https://github.com/Spr-Aachen",
-  },
-  {
-    name: "JustJustGood",
-    platform: "bilibili",
-    url: "https://space.bilibili.com/278414435",
-  },
-  {
-    name: "Verthandii",
-    platform: "github",
-    url: "https://github.com/Verthandii",
-  },
-  {
-    name: "panko12138",
-    platform: "github",
-    url: "https://github.com/panko12138",
-  },
-];
-
-/* 共建者区域：数据源来自 @/content/contributors.ts
- * 两行数据源互不重复，按奇偶拆分 */
-const PLATFORM_ICON: Record<Contributor["platform"], string> = {
+/* 平台 → 图标，新增平台时在这里补一行 */
+const PLATFORM_ICON: Record<string, string> = {
   bilibili: ICON_BILIBILI,
   douyin: ICON_DOUYIN,
   xhs: ICON_XHS,
@@ -52,8 +14,8 @@ const PLATFORM_ICON: Record<Contributor["platform"], string> = {
 };
 
 // 数据源按奇偶拆成两行
-const row1Raw: Contributor[] = [];
-const row2Raw: Contributor[] = [];
+const row1Raw: ContributorConfig[] = [];
+const row2Raw: ContributorConfig[] = [];
 for (let i = 0; i < ALL_CONTRIBUTORS.length; i++) {
   if (i % 2 === 0) row1Raw.push(ALL_CONTRIBUTORS[i]);
   else row2Raw.push(ALL_CONTRIBUTORS[i]);
@@ -61,10 +23,10 @@ for (let i = 0; i < ALL_CONTRIBUTORS.length; i++) {
 
 // 贡献者较少时，循环重复同一个人把行铺满，确保滚动条始终有内容可滚
 const MIN_PER_ROW = 8;
-function fillRow(row: Contributor[]): Contributor[] {
+function fillRow(row: ContributorConfig[]): ContributorConfig[] {
   if (row.length === 0) return [];
   if (row.length >= MIN_PER_ROW) return [...row];
-  const out: Contributor[] = [];
+  const out: ContributorConfig[] = [];
   let i = 0;
   while (out.length < MIN_PER_ROW) {
     out.push(row[i % row.length]);
@@ -79,8 +41,8 @@ const contributorsRow2 = fillRow(row2Raw);
 
 <template>
   <section class="contributors-section">
-    <h2 class="contributors-title">一起把 408 学薄一点</h2>
-    <p class="contributors-subtitle">感谢每一位参与共建、纠错与分享的朋友</p>
+    <h2 class="contributors-title">{{ siteConfig.contributors.title }}</h2>
+    <p class="contributors-subtitle">{{ siteConfig.contributors.subtitle }}</p>
 
     <div class="contributors-viewport">
       <div class="contributors-row contributors-row-left">
@@ -95,7 +57,7 @@ const contributorsRow2 = fillRow(row2Raw);
         >
           <span
             class="contributor-icon"
-            v-html="PLATFORM_ICON[c.platform]"
+            v-html="PLATFORM_ICON[c.platform] || ''"
           ></span>
           <span class="contributor-name">{{ c.name }}</span>
         </a>
@@ -112,7 +74,7 @@ const contributorsRow2 = fillRow(row2Raw);
         >
           <span
             class="contributor-icon"
-            v-html="PLATFORM_ICON[c.platform]"
+            v-html="PLATFORM_ICON[c.platform] || ''"
           ></span>
           <span class="contributor-name">{{ c.name }}</span>
         </a>
@@ -120,12 +82,13 @@ const contributorsRow2 = fillRow(row2Raw);
     </div>
 
     <a
-      href="https://github.com/liangbohan/postgraduate-exam-website/graphs/contributors"
+      v-if="siteConfig.repository.showContributorsLink"
+      :href="contributorsUrl"
       target="_blank"
       rel="noopener noreferrer"
       class="contributors-more"
     >
-      查看全部贡献者 →
+      {{ siteConfig.contributors.moreLabel }}
     </a>
   </section>
 </template>
@@ -258,7 +221,7 @@ const contributorsRow2 = fillRow(row2Raw);
   color: #0b1f45;
 }
 
-/* 底部"查看全部"链接 */
+/* 底部“查看全部”链接 */
 .contributors-more {
   display: inline-block;
   margin-top: 24px;
