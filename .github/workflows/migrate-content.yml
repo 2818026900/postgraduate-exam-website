@@ -1,0 +1,82 @@
+name: Migrate knowledge content
+
+# 一次性任务：把旧 TS 正文导出成 content/knowledge 下的 Markdown，
+# 验证构建通过后删除旧的 TS 正文目录，并把结果提交回 master。
+# 也可在 Actions 页面手动触发（Run workflow）。
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/migrate-content.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: migrate-content
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # 一次性补丁：让搜索索引与真题校验读 Markdown 编译产物。
+      # 应用成功后自删，后续手动重跑会自动跳过。
+      - name: Apply content pipeline hooks
+        run: |
+          if [ -f scripts/content/pipeline-hooks.patch ]; then
+            git apply scripts/content/pipeline-hooks.patch
+            rm scripts/content/pipeline-hooks.patch
+          fi
+
+      - name: Export TS articles to Markdown
+        run: |
+          if [ -d client/src/content/knowledge-articles/books ]; then
+            node scripts/migrate-content.mjs --force
+          else
+            echo "Content already migrated, skip"
+          fi
+
+      - name: Validate migrated content
+        run: npm run validate
+
+      - name: Build with legacy TS still present
+        run: npm run build
+
+      - name: Remove legacy TS articles
+        run: |
+          set -e
+          legacy="client/src/content/knowledge-articles"
+          for target in books computer-networks data-structures computer-organization operating-systems; do
+            if [ -d "$legacy/$target" ]; then
+              git rm -r -q "$legacy/$target"
+            fi
+          done
+
+      - name: Validate and build without legacy TS
+        run: |
+          npm run validate
+          npm run build
+
+      - name: Commit migration
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "content: 知识正文迁移为 Markdown（content/knowledge）"
+            git push
+          fi

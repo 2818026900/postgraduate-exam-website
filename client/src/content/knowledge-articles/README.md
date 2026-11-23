@@ -1,24 +1,18 @@
-# 知识文章目录
+# 知识正文目录
 
-静态知识文章按“408 书目 / 章节 / KnowledgePoint 文件”组织。
+正文源已搬到仓库根目录的 `content/knowledge/`，以 Markdown 编写，构建时编译成
+`generated/*.json` 给页面用。完整约定见 [`docs/CONTENT.md`](../../../../docs/CONTENT.md)。
+
+这里只保留运行时加载与轻量索引：
 
 ```text
 knowledge-articles/
-├── data-structures/
-├── computer-organization/
-├── operating-systems/
-└── computer-networks/
-    ├── network-architecture/
-    ├── physical-layer/
-    ├── data-link-layer/
-    ├── network-layer/
-    ├── transport-layer/
-    └── application-layer/
+├── registry.ts              # 按教材加载正文（JSON 优先，旧 books/*.ts 兜底）
+├── articleAssets.ts         # 解析 Markdown 里引用的动画 / 图片
+├── generated/               # content/knowledge 编译产物（git 忽略，勿手改）
+├── block-index.generated.ts # 块 ID 反查索引（构建时生成）
+└── types.ts
 ```
 
-每个 `.ts` 文件只导出一个 `KnowledgeArticleData`，也就是一个知识点页面。
-页面模板由 `KnowledgeArticle.vue` 统一负责；新增文章后，只需在
-`registry.ts` 中登记一次。
-
-每个内容块还必须填写全局唯一且稳定的 `kb-*` ID。后端选择题或综合题小问通过
-`knowledgeBlockId` 精确引用它；关联规则和示例见 `blueprint/CONTENT_AUTHORING_GUIDE.md`。
+迁移期间旧的 `books/*.ts` 与按教材拆分的 TS 正文目录仍然存在，用于兜底；
+Markdown 覆盖同名知识点后，这些旧文件可以删除。
