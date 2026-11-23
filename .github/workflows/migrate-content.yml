@@ -3,6 +3,7 @@ name: Migrate knowledge content
 # 一次性任务：把旧 TS 正文导出成 content/knowledge 下的 Markdown，
 # 验证构建通过后删除旧的 TS 正文目录，并把结果提交回 master。
 # 也可在 Actions 页面手动触发（Run workflow）。
+# 迁移可重复执行：已完成的步骤会自动跳过。
 
 on:
   workflow_dispatch:
