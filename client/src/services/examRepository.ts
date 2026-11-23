@@ -1,6 +1,7 @@
 import type { Exam, ExamFilters, ExamFilterBookChapter, ExamFilterBookChapterSection, ExamKnowledgeLink, ExamListResponse, ExamQuestionType, ExamSubject } from '@/types'
 import { withBase } from '@/search/shared'
-import { knowledgeBooks } from '@/content/knowledge-tree'
+import { knowledgeBooks } from '@/content/books'
+import { examSubjectLabels, examSubjectToKnowledgeSubject } from '@/config/books.config'
 import { blockIdsOfPoint } from '@/content/knowledge-articles/registry'
 
 /**
@@ -36,20 +37,12 @@ export type ExamPaper = {
   questions: Exam[]
 }
 
-const SUBJECT_LABELS = {
-  ds: '数据结构',
-  co: '计算机组成原理',
-  os: '操作系统',
-  cn: '计算机网络',
-} as const
-
-/** ExamSubject (ds/co/os/cn) ↔ knowledge Book.subject 枚举值 */
-const EXAM_SUBJECT_TO_KNOWLEDGE_SUBJECT: Record<ExamSubject, string> = {
-  ds: 'DATA_STRUCTURES',
-  co: 'COMPUTER_ORGANIZATION',
-  os: 'OPERATING_SYSTEMS',
-  cn: 'NETWORK',
-}
+/**
+ * 学科标签与「学科 → 知识体系 subject」的映射来自 @/config/books.config.ts，
+ * 新增/下线一门课程只改配置，不用改这个文件。
+ */
+const SUBJECT_LABELS = examSubjectLabels
+const EXAM_SUBJECT_TO_KNOWLEDGE_SUBJECT = examSubjectToKnowledgeSubject
 
 /* ---------- 请求缓存：避免同一文件重复请求 ---------- */
 let manifestPromise: Promise<ExamManifest> | null = null
